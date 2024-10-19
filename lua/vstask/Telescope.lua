@@ -158,9 +158,9 @@ local function start_launch_direction(direction, prompt_bufnr, _, selection_list
   local label = selection_list[selection.index]["name"]
   local args = selection_list[selection.index]["args"]
   Parse.Used_launch(label)
-  local formatted_command = format_command(command, options)
-  local built = Parse.Build_launch(formatted_command.command, args)
-  process_command(built, direction, Term_opts)
+  command = Parse.Build_launch(command, args)
+  local built = format_command(command, options)
+  process_command(built.command, direction, Term_opts)
 end
 
 local function start_task_direction(direction, promp_bufnr, _, selection_list)
@@ -172,10 +172,10 @@ local function start_task_direction(direction, promp_bufnr, _, selection_list)
   local label = selection_list[selection.index]["label"]
   local args = selection_list[selection.index]["args"]
   set_history(label, command, options)
-  local formatted_command = format_command(command, options)
-  if(args ~= nil) then
-    formatted_command.command = Parse.Build_launch(formatted_command.command, args)
+  if (args ~= nil) then
+    command = Parse.Build_launch(command, args)
   end
+  local formatted_command = format_command(command, options)
   process_command(formatted_command.command, direction, Term_opts)
 end
 

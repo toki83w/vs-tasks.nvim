@@ -226,6 +226,20 @@ local function get_input_variable(getvar, inputs)
   end
 end
 
+local function get_env_variable(getvar)
+    return require('os').getenv(getvar)
+end
+
+local function get_env_variables(command)
+    local env_variables = {}
+    local count = 0
+    for w in string.gmatch(command, "${env:([^}]*)}") do
+        table.insert(env_variables, w)
+        count = count + 1
+    end
+    return env_variables, count
+end
+
 local function get_input_variables(command)
   local input_variables = {}
   local count = 0
@@ -268,6 +282,7 @@ end
 
 local extract_variables = function(command, inputs)
   local input_vars = get_input_variables(command)
+  local env_vars = get_env_variables(command)
   local predefined_vars = get_predefined_variables(command)
   local missing = {}
   for _, input_var in pairs(input_vars) do
@@ -284,15 +299,21 @@ local extract_variables = function(command, inputs)
   for _, input in pairs(missing) do
     load_input_variable(input)
   end
-  return input_vars, predefined_vars
+  return input_vars, predefined_vars, env_vars
 end
 
 local function replace_vars_in_command(command)
   local inputs = get_inputs()
-  local input_vars, predefined_vars = extract_variables(command, inputs)
+  local input_vars, predefined_vars, env_vars = extract_variables(command, inputs)
   for _, replacing in pairs(input_vars) do
     local replace_pattern = "${input:" .. replacing .. "}"
     local replace = get_input_variable(replacing, inputs)
+    command = string.gsub(command, replace_pattern, replace)
+  end
+
+  for _, replacing in pairs(env_vars) do
+    local replace_pattern = "${env:" .. replacing .. "}"
+    local replace = get_env_variable(replacing)
     command = string.gsub(command, replace_pattern, replace)
   end
 
